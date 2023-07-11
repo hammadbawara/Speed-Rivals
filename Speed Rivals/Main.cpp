@@ -25,13 +25,15 @@ public:
     Sign() {
 
     }
-    Sign(float xPosition, float yPosition) : yPosition(yPosition)
-    {
+
+    void setSignValues(float xPosition, float yPosition) {
+        this->yPosition = yPosition;
         signTexture.loadFromFile("images/road_sign.png");
         signSprite.setTexture(signTexture);
         signSprite.setScale(1, 1);
         signSprite.setPosition(xPosition, yPosition);
     }
+    
 
 
     void move(float deltaTime, float speed)
@@ -110,8 +112,9 @@ class Track {
     int noOfEntities;
     int totalDistance;
 
-    Sign roadSigns[14]={Sign(140, 0), Sign(140, 150), Sign(140, 300), Sign(140, 450), Sign(140, 600), Sign(140, 750), Sign(140, 900),
-                          Sign(290, 0), Sign(290, 150), Sign(290, 300), Sign(290, 450), Sign(290, 600), Sign(290, 750), Sign(290, 900)};
+    Sign roadSigns[14];
+    /*{Sign(140, 0), Sign(140, 150), Sign(140, 300), Sign(140, 450), Sign(140, 600), Sign(140, 750), Sign(140, 900),
+                          Sign(290, 0), Sign(290, 150), Sign(290, 300), Sign(290, 450), Sign(290, 600), Sign(290, 750), Sign(290, 900)};*/
 
     int road;
     Texture boosterTexture;
@@ -144,6 +147,19 @@ public:
             {
                 gameEntities[i] = Boosters(i * -300, random_road, boosterTexture);
             }
+        }
+
+        if (road == 1) {
+            for (int i = 0; i < 7; i++) {
+                roadSigns[i].setSignValues(140, i * 150);
+                roadSigns[i+7].setSignValues(290, i * 150);
+            }
+        }
+        else if (road == 2) {
+            for (int i = 0; i < 7; i++) {
+				roadSigns[i].setSignValues(690, i * 150.0);
+				roadSigns[i+7].setSignValues(840, i * 150.0);
+			}
         }
     }
 
@@ -190,6 +206,7 @@ private:
     float acceleration;
     Text speedText;
     Font font;
+    
 public:
     Car(Vector2f position) : position(position)
     {
@@ -256,7 +273,7 @@ public:
         track.move(speed, deltaTime);
     }
 
-    void detectCollision(Track& track) {
+    void checkCollision(Track& track) {
         for (int i = 0; i < track.getNoOfEntities(); i++)
         {
             if (getBounds().intersects(track.getGameEntitity(i)->getBounds()))
@@ -278,7 +295,9 @@ int main()
 {
     RenderWindow window(VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Car Game");
 
-    Car car(Vector2f(180, 600));
+    Car car1(Vector2f(180, 600));
+
+    Car car2(Vector2f(700, 600));
 
     Texture roadTexture;
     roadTexture.loadFromFile("images/road.png");
@@ -287,6 +306,9 @@ int main()
 
     Track track1(2000, 1);
     track1.generate();
+
+    Track track2(2000, 2);
+    track2.generate();
 
     Clock clock;
 
@@ -311,38 +333,44 @@ int main()
 
         if (Keyboard::isKeyPressed(Keyboard::Down))
         {
-            car.decelerate(deltaTime, 30);
+            car1.decelerate(deltaTime, 30);
         }
         
 
         if (Keyboard::isKeyPressed(Keyboard::Left))
         {
-            car.moveLeft(deltaTime, 200);
+            car1.moveLeft(deltaTime, 200);
         }
 
         if (Keyboard::isKeyPressed(Keyboard::Right))
         {
-            car.moveRight(deltaTime, 200);
+            car1.moveRight(deltaTime, 200);
         }
 
         if (isAcceleratorPressed)
         {
-            car.accelerate(deltaTime, 50);
+            car1.accelerate(deltaTime, 50);
         }
         else
         {
-			car.decelerate(deltaTime, 0.2);
+			car1.decelerate(deltaTime, 0.2);
 		}
+
 
         window.clear();
         window.draw(road);
 
         track1.draw(window);
+        track2.draw(window);
+        
 
-        car.move(track1, deltaTime);
+        car1.move(track1, deltaTime);
+
+        
 
 
-        car.draw(window);
+        car1.draw(window);
+        car2.draw(window);
 
         window.display();
     }
