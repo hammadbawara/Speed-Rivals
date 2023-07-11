@@ -315,7 +315,9 @@ int main()
     
     while (window.isOpen())
     {
-        bool isAcceleratorPressed = false;
+        bool car2AcceleratorPressed = false;
+        bool car1AcceleratorPressed = false;
+
         Event event;
         float deltaTime = clock.restart().asSeconds();
 
@@ -326,35 +328,72 @@ int main()
 
         }
 
-        if (Keyboard::isKeyPressed(Keyboard::Up))
+        // Car 1 Controls
+
+        if (Keyboard::isKeyPressed(Keyboard::W))
         {
-            isAcceleratorPressed = true;
+            car1AcceleratorPressed = true;
         }
 
-        if (Keyboard::isKeyPressed(Keyboard::Down))
+        if (Keyboard::isKeyPressed(Keyboard::S))
         {
             car1.decelerate(deltaTime, 30);
         }
-        
 
-        if (Keyboard::isKeyPressed(Keyboard::Left))
+
+        if (Keyboard::isKeyPressed(Keyboard::A))
         {
             car1.moveLeft(deltaTime, 200);
         }
 
-        if (Keyboard::isKeyPressed(Keyboard::Right))
+        if (Keyboard::isKeyPressed(Keyboard::D))
         {
             car1.moveRight(deltaTime, 200);
         }
 
-        if (isAcceleratorPressed)
+        if (car1AcceleratorPressed)
         {
             car1.accelerate(deltaTime, 50);
         }
         else
         {
-			car1.decelerate(deltaTime, 0.2);
+            car1.decelerate(deltaTime, 0.2);
+        }
+
+        // Car 2 Controls
+
+        if (Keyboard::isKeyPressed(Keyboard::Up))
+        {
+            car2AcceleratorPressed = true;
+        }
+
+        if (Keyboard::isKeyPressed(Keyboard::Down))
+        {
+            car2.decelerate(deltaTime, 30);
+        }
+        
+
+        if (Keyboard::isKeyPressed(Keyboard::Left))
+        {
+            car2.moveLeft(deltaTime, 200);
+        }
+
+        if (Keyboard::isKeyPressed(Keyboard::Right))
+        {
+            car2.moveRight(deltaTime, 200);
+        }
+
+        if (car2AcceleratorPressed)
+        {
+            car2.accelerate(deltaTime, 50);
+        }
+        else
+        {
+			car2.decelerate(deltaTime, 0.2);
 		}
+
+        
+
 
 
         window.clear();
@@ -366,7 +405,7 @@ int main()
 
         car1.move(track1, deltaTime);
 
-        
+        car2.move(track2, deltaTime);
 
 
         car1.draw(window);
