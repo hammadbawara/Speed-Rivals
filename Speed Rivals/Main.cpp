@@ -1,5 +1,4 @@
 #include <SFML/Graphics.hpp>
-#include <iostream>
 using namespace sf;
 
 const int WINDOW_WIDTH = 1000;
@@ -85,6 +84,11 @@ public:
         window.draw(sprite);
     }
 
+    FloatRect getBounds() const
+    {
+		return sprite.getGlobalBounds();
+	}
+
     void move(float deltaTime, float speed)
     {
         sprite.move(0, speed * deltaTime); // Move upwards
@@ -165,6 +169,14 @@ public:
         }
 
     }
+
+    int getNoOfEntities() {
+		return noOfEntities;
+	}
+
+    GameEntity* getGameEntitity(int i) {
+        return &gameEntities[i];
+    }
 };
 
 class Car
@@ -176,11 +188,17 @@ private:
     float speed;
     float topSpeed;
     float acceleration;
+    Text speedText;
+    Font font;
 public:
     Car(Vector2f position) : position(position)
     {
 
         carTexture.loadFromFile("./images/car.png");
+        font.loadFromFile("./fonts/Roboto-Regular.ttf");
+        speedText.setFont(font);
+        speedText.setPosition(10, 10);
+        speedText.setFillColor(Color::Red);
 
         carSprite.setTexture(carTexture);
         carSprite.setPosition(position.x, position.y); // Set initial position at the bottom
@@ -191,6 +209,9 @@ public:
 
     void draw(RenderWindow& window)
     {
+        speedText.setString(std::to_string(speed));
+        
+        window.draw(speedText);
         window.draw(carSprite);
     }
 
@@ -231,8 +252,26 @@ public:
 	}
 
     void move(Track& track, float deltaTime) {
+        
         track.move(speed, deltaTime);
     }
+
+    void detectCollision(Track& track) {
+        for (int i = 0; i < track.getNoOfEntities(); i++)
+        {
+            if (getBounds().intersects(track.getGameEntitity(i)->getBounds()))
+            {
+                if (typeid(*track.getGameEntitity(i)) == typeid(Barrier))
+                {
+					decelerate(0.5, 0.5);
+				}
+                else if (typeid(*track.getGameEntitity(i)) == typeid(Boosters))
+                {
+					accelerate(0.5, 0.5);
+				}
+			}
+		}
+	}
 };
 
 int main()
@@ -292,7 +331,7 @@ int main()
         }
         else
         {
-			car.decelerate(deltaTime, 2);
+			car.decelerate(deltaTime, 0.2);
 		}
 
         window.clear();
