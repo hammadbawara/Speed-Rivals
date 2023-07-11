@@ -102,6 +102,10 @@ public:
         
     }
 
+    Sprite& getSprite() {
+        return sprite;
+    }
+
     void draw(RenderWindow& window)
     {
         window.draw(sprite);
@@ -154,6 +158,19 @@ public:
 
         boosterTexture.loadFromFile("./images/barrier.png");
         barrierTexture.loadFromFile("./images/boosters.png");
+
+        if (track == 1) {
+            for (int i = 0; i < 6; i++) {
+                roadSigns[i].setSignValues(140, i * 200);
+                roadSigns[i + 6].setSignValues(290, i * 200);
+            }
+        }
+        else if (track == 2) {
+            for (int i = 0; i < 6; i++) {
+                roadSigns[i].setSignValues(690, i * 200);
+                roadSigns[i + 6].setSignValues(840, i * 200);
+            }
+        }
     }
     void generate()
     {
@@ -170,20 +187,18 @@ public:
                 gameEntities[i] = Boosters(i * -300, random_road, boosterTexture, track);
             }
         }
+    }
 
-        if (track == 1) {
-            for (int i = 0; i < 6; i++) {
-                roadSigns[i].setSignValues(140, i * 200);
-                roadSigns[i+6].setSignValues(290, i * 200);
-            }
-        }
-        else if (track == 2) {
-            for (int i = 0; i < 6; i++) {
-				roadSigns[i].setSignValues(690, i * 200);
-				roadSigns[i+6].setSignValues(840, i * 200);
-			}
+    void copyEntityInto(Track& track, int xMove) {
+        track.noOfEntities = noOfEntities;
+        track.gameEntities = new GameEntity[noOfEntities];
+
+        for (int i = 0; i < noOfEntities; i++) {
+            track.gameEntities[i] = gameEntities[i];
+            track.gameEntities[i].getSprite().setPosition(gameEntities[i].getSprite().getPosition().x + xMove, gameEntities[i].getSprite().getPosition().y);
         }
     }
+
 
     void draw(RenderWindow& window) {
         for (int j = 0; j < 12; j++)
@@ -342,7 +357,7 @@ int main()
     track1.generate();
 
     Track track2(2000, 2, Vector2i(550, 900));
-    track2.generate();
+    track1.copyEntityInto(track2, 550);
 
     Clock clock;
 
