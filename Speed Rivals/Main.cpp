@@ -14,49 +14,7 @@ int randomInt(int start, int end)
     return random;
 }
 
-class Car
-{
-private:
-    Sprite carSprite;
-    Vector2f position;
-    Texture carTexture;
-public:
-    Car(Vector2f position) : position(position)
-    {
 
-        carTexture.loadFromFile("./images/car.png");
-
-        carSprite.setTexture(carTexture);
-        carSprite.setPosition(position.x, position.y); // Set initial position at the bottom
-    }
-
-    void draw(RenderWindow& window)
-    {
-        window.draw(carSprite);
-    }
-
-    FloatRect getBounds() const
-    {
-        return carSprite.getGlobalBounds();
-    }
-
-    void moveLeft(float deltaTime, float speed)
-    {
-        float newX = carSprite.getPosition().x - speed * deltaTime;
-        if (newX > 0 || newX < TRACK1_WIDTH) {
-            carSprite.move(-speed * deltaTime, 0); // Move left
-        }
-
-    }
-
-    void moveRight(float deltaTime, float speed)
-    {
-        float newX = carSprite.getPosition().x + speed * deltaTime;
-        if (newX > 0 || newX < TRACK1_WIDTH) {
-            carSprite.move(speed * deltaTime, 0); // Move right
-        }
-    }
-};
 
 class Sign {
 private:
@@ -148,7 +106,8 @@ class Track {
     int noOfEntities;
     int totalDistance;
 
-    Sign roadSigns[2][7];
+    Sign roadSigns[14]={Sign(140, 0), Sign(140, 150), Sign(140, 300), Sign(140, 450), Sign(140, 600), Sign(140, 750), Sign(140, 900),
+                          Sign(290, 0), Sign(290, 150), Sign(290, 300), Sign(290, 450), Sign(290, 600), Sign(290, 750), Sign(290, 900)};
 
     int road;
     Texture boosterTexture;
@@ -162,12 +121,13 @@ public:
 
         noOfEntities = totalDistance / 300;
 
+        gameEntities = new GameEntity[noOfEntities];
+
         boosterTexture.loadFromFile("./images/barrier.png");
         barrierTexture.loadFromFile("./images/boosters.png");
     }
     void generate()
     {
-        gameEntities = new GameEntity[noOfEntities];
         for (int i = 0; i < noOfEntities; i++)
         {
             int random_road = randomInt(1, 3);
@@ -181,32 +141,12 @@ public:
                 gameEntities[i] = Boosters(i * -300, random_road, boosterTexture);
             }
         }
-
-        if (road == 1)
-        {
-            for (int i = 0; i < 7; i++)
-            {
-                roadSigns[0][i] = Sign(140, i * 150);
-                roadSigns[1][i] = Sign(290, i * 150);
-            }
-        }
-        else if (road == 2)
-        {
-            for (int i = 0; i < 7; i++)
-            {
-                roadSigns[0][i] = Sign(690, i * 150);
-                roadSigns[1][i] = Sign(840, i * 150);
-            }
-        }
     }
 
     void draw(RenderWindow& window) {
-        for (int i = 0; i < 2; i++)
+        for (int j = 0; j < 14; j++)
         {
-            for (int j = 0; j < 7; j++)
-            {
-                roadSigns[i][j].draw(window);
-            }
+            roadSigns[j].draw(window);
         }
         for (int i = 0; i < noOfEntities; i++)
         {
@@ -215,18 +155,83 @@ public:
     }
 
     void move(float deltaTime, float speed) {
-        for (int i = 0; i < 2; i++)
+        for (int j = 0; j < 14; j++)
         {
-            for (int j = 0; j < 7; j++)
-            {
-                roadSigns[i][j].move(deltaTime, speed);
-            }
+            roadSigns[j].move(deltaTime, speed);
         }
         for (int i = 0; i < noOfEntities; i++)
         {
             gameEntities[i].move(deltaTime, speed);
         }
 
+    }
+};
+
+class Car
+{
+private:
+    Sprite carSprite;
+    Vector2f position;
+    Texture carTexture;
+    float speed;
+    float topSpeed;
+    float acceleration;
+public:
+    Car(Vector2f position) : position(position)
+    {
+
+        carTexture.loadFromFile("./images/car.png");
+
+        carSprite.setTexture(carTexture);
+        carSprite.setPosition(position.x, position.y); // Set initial position at the bottom
+        speed = 0;
+        topSpeed = 1000;
+        acceleration = 0;
+    }
+
+    void draw(RenderWindow& window)
+    {
+        window.draw(carSprite);
+    }
+
+    FloatRect getBounds() const
+    {
+        return carSprite.getGlobalBounds();
+    }
+
+    void moveLeft(float deltaTime, float speed)
+    {
+        float newX = carSprite.getPosition().x - speed * deltaTime;
+        if (newX > 0 || newX < TRACK1_WIDTH) {
+            carSprite.move(-speed * deltaTime, 0); // Move left
+        }
+
+    }
+
+    void moveRight(float deltaTime, float speed)
+    {
+        float newX = carSprite.getPosition().x + speed * deltaTime;
+        if (newX > 0 || newX < TRACK1_WIDTH) {
+            carSprite.move(speed * deltaTime, 0); // Move right
+        }
+    }
+
+    void accelerate(float deltaTime, float s) {
+        acceleration += s * deltaTime;
+        if (speed < topSpeed) {
+            speed += acceleration * deltaTime;
+        }
+    }
+
+    void decelerate(float deltaTime, float s) {
+		acceleration -= s * deltaTime;
+        if (speed > 0) {
+			speed -= acceleration * deltaTime;
+		}
+	}
+
+    void move(Track& track, float deltaTime) {
+        track.move(speed, deltaTime);
     }
 };
 
@@ -246,8 +251,10 @@ int main()
 
     Clock clock;
 
+    
     while (window.isOpen())
     {
+        bool isAcceleratorPressed = false;
         Event event;
         float deltaTime = clock.restart().asSeconds();
 
@@ -260,13 +267,14 @@ int main()
 
         if (Keyboard::isKeyPressed(Keyboard::Up))
         {
-            track1.move(deltaTime, 200);
+            isAcceleratorPressed = true;
         }
 
         if (Keyboard::isKeyPressed(Keyboard::Down))
         {
-            track1.move(deltaTime, -200);
+            car.decelerate(deltaTime, 30);
         }
+        
 
         if (Keyboard::isKeyPressed(Keyboard::Left))
         {
@@ -278,10 +286,21 @@ int main()
             car.moveRight(deltaTime, 200);
         }
 
+        if (isAcceleratorPressed)
+        {
+            car.accelerate(deltaTime, 50);
+        }
+        else
+        {
+			car.decelerate(deltaTime, 2);
+		}
+
         window.clear();
         window.draw(road);
 
         track1.draw(window);
+
+        car.move(track1, deltaTime);
 
 
         car.draw(window);
