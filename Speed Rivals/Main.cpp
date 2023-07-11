@@ -40,9 +40,9 @@ public:
     {
         signSprite.move(0, speed * deltaTime); // Move upwards
 
-        if (signSprite.getPosition().y > WINDOW_HEIGHT + 150)
+        if (signSprite.getPosition().y > WINDOW_HEIGHT + 200)
         {                                          // Check if the road is off-screen
-            signSprite.setPosition(signSprite.getPosition().x, -150); // Reset sign position at the bottom
+            signSprite.setPosition(signSprite.getPosition().x, -200); // Reset sign position at the bottom
         }
     }
 
@@ -133,15 +133,18 @@ class Track {
     int noOfEntities;
     int totalDistance;
 
-    Sign roadSigns[14];
+    Sign roadSigns[12];
    
     int track;
     Texture boosterTexture;
     Texture barrierTexture;
+
+    Vector2i boundary;
 public:
 
-    Track(int totalDistance, int t) {
+    Track(int totalDistance, int t, Vector2i boundary) {
         this->totalDistance = totalDistance;
+        this->boundary = boundary;
 
         track = t;
 
@@ -169,21 +172,21 @@ public:
         }
 
         if (track == 1) {
-            for (int i = 0; i < 7; i++) {
-                roadSigns[i].setSignValues(140, i * 150);
-                roadSigns[i+7].setSignValues(290, i * 150);
+            for (int i = 0; i < 6; i++) {
+                roadSigns[i].setSignValues(140, i * 200);
+                roadSigns[i+6].setSignValues(290, i * 200);
             }
         }
         else if (track == 2) {
-            for (int i = 0; i < 7; i++) {
-				roadSigns[i].setSignValues(690, i * 150.0);
-				roadSigns[i+7].setSignValues(840, i * 150.0);
+            for (int i = 0; i < 6; i++) {
+				roadSigns[i].setSignValues(690, i * 200);
+				roadSigns[i+6].setSignValues(840, i * 200);
 			}
         }
     }
 
     void draw(RenderWindow& window) {
-        for (int j = 0; j < 14; j++)
+        for (int j = 0; j < 12; j++)
         {
             roadSigns[j].draw(window);
         }
@@ -203,6 +206,10 @@ public:
             gameEntities[i].move(deltaTime, speed);
         }
 
+    }
+
+    Vector2i& getBoundary(){
+        return boundary;
     }
 
     int getNoOfEntities() {
@@ -249,6 +256,7 @@ public:
 
     void draw(RenderWindow& window)
     {
+        int speed = (int)this->speed;
         speedText.setString(std::to_string(speed));
         
         window.draw(speedText);
@@ -260,21 +268,22 @@ public:
         return carSprite.getGlobalBounds();
     }
 
-    void moveLeft(float deltaTime, float speed)
+    void moveLeft(float deltaTime, float speed, Track& track)
     {
-        float newX = carSprite.getPosition().x - speed * deltaTime;
-        if (newX > 0 || newX < TRACK1_WIDTH) {
+        float newX = carSprite.getPosition().x - (speed * deltaTime);
+        if (newX > track.getBoundary().x) {
             carSprite.move(-speed * deltaTime, 0); // Move left
         }
 
     }
 
-    void moveRight(float deltaTime, float speed)
+    void moveRight(float deltaTime, float speed, Track& track)
     {
         float newX = carSprite.getPosition().x + speed * deltaTime;
-        if (newX > 0 || newX < TRACK1_WIDTH) {
-            carSprite.move(speed * deltaTime, 0); // Move right
-        }
+        if (newX < track.getBoundary().x + 370) {
+			carSprite.move(speed * deltaTime, 0); // Move right
+		}
+        
     }
 
     void accelerate(float deltaTime, float s) {
@@ -329,10 +338,10 @@ int main()
     Sprite road(roadTexture);
     road.setScale(1, 1);
 
-    Track track1(2000, 1);
+    Track track1(2000, 1, Vector2i(0, 450));
     track1.generate();
 
-    Track track2(2000, 2);
+    Track track2(2000, 2, Vector2i(550, 900));
     track2.generate();
 
     Clock clock;
@@ -368,12 +377,12 @@ int main()
 
         if (Keyboard::isKeyPressed(Keyboard::A))
         {
-            car1.moveLeft(deltaTime, 200);
+            car1.moveLeft(deltaTime, 200, track1);
         }
 
         if (Keyboard::isKeyPressed(Keyboard::D))
         {
-            car1.moveRight(deltaTime, 200);
+            car1.moveRight(deltaTime, 200, track1);
         }
 
         if (car1AcceleratorPressed)
@@ -394,18 +403,18 @@ int main()
 
         if (Keyboard::isKeyPressed(Keyboard::Down))
         {
-            car2.decelerate(deltaTime, 30);
+            car2.decelerate(deltaTime, 20);
         }
         
 
         if (Keyboard::isKeyPressed(Keyboard::Left))
         {
-            car2.moveLeft(deltaTime, 200);
+            car2.moveLeft(deltaTime, 200, track2);
         }
 
         if (Keyboard::isKeyPressed(Keyboard::Right))
         {
-            car2.moveRight(deltaTime, 200);
+            car2.moveRight(deltaTime, 200, track2);
         }
 
         if (car2AcceleratorPressed)
