@@ -336,7 +336,7 @@ public:
 
     void drawCarOnTrack(Track& currentTrack, Track& otherTrack, RenderWindow& window) {
 		float difference = currentTrack.getCurrentDistance() - otherTrack.getCurrentDistance();
-        if (difference > - 200 && difference < 900) {
+        if (difference > - 300 && difference < 700) {
 			Car car = *this;
             car.carSprite.move(otherTrack.getBoundary().x - currentTrack.getBoundary().x, -difference);
 			car.draw(window);
@@ -369,10 +369,10 @@ int main()
 {
     RenderWindow window(VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Car Game");
 
-    Car car1(Vector2f(180, 600), "./images/car.png");
+    Car car1(Vector2f(30, 520), "./images/car1.png");
     car1.setSpeedTextPosition(Vector2f(10, 10));
 
-    Car car2(Vector2f(700, 600), "./images/car2.png");
+    Car car2(Vector2f(880, 520), "./images/car2.png");
     car2.setSpeedTextPosition(Vector2f(560, 10));
 
     Texture roadTexture;
@@ -387,6 +387,8 @@ int main()
     track1.copyEntityInto(track2, 550);
 
     Clock clock;
+
+    window.setFramerateLimit(60);
 
     
     while (window.isOpen())
