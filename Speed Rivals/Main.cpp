@@ -14,7 +14,6 @@ int randomInt(int start, int end)
 }
 
 
-
 class Sign {
 private:
     Sprite signSprite;
@@ -137,6 +136,8 @@ class Track {
     int noOfEntities;
     int totalDistance;
 
+    float currentDistance;
+
     Sign roadSigns[12];
    
     int track;
@@ -153,6 +154,8 @@ public:
         track = t;
 
         noOfEntities = totalDistance / 300;
+
+        currentDistance = 0;
 
         gameEntities = new GameEntity[noOfEntities];
 
@@ -212,7 +215,10 @@ public:
     }
 
     void move(float deltaTime, float speed) {
-        for (int j = 0; j < 14; j++)
+
+        currentDistance += speed * deltaTime;
+
+        for (int j = 0; j < 12; j++)
         {
             roadSigns[j].move(deltaTime, speed);
         }
@@ -234,6 +240,19 @@ public:
     GameEntity* getGameEntitity(int i) {
         return &gameEntities[i];
     }
+
+    float& getCurrentDistance() {
+        return currentDistance;
+    }
+
+    /*void showCarFromTrack(Track& otherTrack, Car& otherCar, RenderWindow& window) {
+        float difference = otherTrack.getCurrentDistance() - currentDistance;
+        if (difference > 0) {
+            Car car = otherCar;
+            car.moveCordinate(-450, difference);
+            car.draw(window);
+        }
+    }*/
 };
 
 class Car
@@ -249,10 +268,10 @@ private:
     Font font;
     
 public:
-    Car(Vector2f position) : position(position)
+    Car(Vector2f position, std::string texturePath) : position(position)
     {
 
-        carTexture.loadFromFile("./images/car.png");
+        carTexture.loadFromFile(texturePath);
         font.loadFromFile("./fonts/Roboto-Regular.ttf");
         speedText.setFont(font);
         speedText.setPosition(0, 0);
@@ -261,7 +280,7 @@ public:
         carSprite.setTexture(carTexture);
         carSprite.setPosition(position.x, position.y); // Set initial position at the bottom
         speed = 0;
-        topSpeed = 1000;
+        topSpeed = 2500;
         acceleration = 0;
     }
 
@@ -271,7 +290,7 @@ public:
 
     void draw(RenderWindow& window)
     {
-        int speed = (int)this->speed;
+        int speed = (int)this->speed/10;
         speedText.setString(std::to_string(speed));
         
         window.draw(speedText);
@@ -315,10 +334,14 @@ public:
 		}
 	}
 
-    void move(Track& track, float deltaTime) {
-        
-        track.move(speed, deltaTime);
-    }
+    void drawCarOnTrack(Track& currentTrack, Track& otherTrack, RenderWindow& window) {
+		float difference = currentTrack.getCurrentDistance() - otherTrack.getCurrentDistance();
+        if (difference > - 200 && difference < 900) {
+			Car car = *this;
+            car.carSprite.move(otherTrack.getBoundary().x - currentTrack.getBoundary().x, -difference);
+			car.draw(window);
+		}
+	}
 
     void checkCollision(Track& track) {
         for (int i = 0; i < track.getNoOfEntities(); i++)
@@ -336,16 +359,20 @@ public:
 			}
 		}
 	}
+
+    void move(Track& track, float deltaTime) {
+        track.move(deltaTime, speed);
+    }
 };
 
 int main()
 {
     RenderWindow window(VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Car Game");
 
-    Car car1(Vector2f(180, 600));
+    Car car1(Vector2f(180, 600), "./images/car.png");
     car1.setSpeedTextPosition(Vector2f(10, 10));
 
-    Car car2(Vector2f(700, 600));
+    Car car2(Vector2f(700, 600), "./images/car2.png");
     car2.setSpeedTextPosition(Vector2f(560, 10));
 
     Texture roadTexture;
@@ -440,7 +467,6 @@ int main()
         {
 			car2.decelerate(deltaTime, 0.2);
 		}
-
         
 
 
@@ -458,7 +484,9 @@ int main()
 
 
         car1.draw(window);
+        car1.drawCarOnTrack(track1, track2, window);
         car2.draw(window);
+        car2.drawCarOnTrack(track2, track1, window);
 
         window.display();
     }
