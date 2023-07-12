@@ -69,13 +69,13 @@ public:
             switch (road)
             {
             case 1:
-                sprite.setPosition(0, yPosition);
+                sprite.setPosition(10, yPosition);
                 break;
             case 2:
-                sprite.setPosition(160, yPosition);
+                sprite.setPosition(170, yPosition);
                 break;
             case 3:
-                sprite.setPosition(310, yPosition);
+                sprite.setPosition(325, yPosition);
                 break;
             default:
                 break;
@@ -161,7 +161,7 @@ public:
         distanceText.setFillColor(Color::Blue);
         distanceText.setPosition(boundary.x + 350, 10);
 
-        noOfEntities = totalDistance / 300;
+        noOfEntities = totalDistance / 500;
 
         currentDistance = 0;
 
@@ -191,13 +191,17 @@ public:
             int random_entity = randomInt(0, 1);
             if (random_entity == 0)
             {
-                gameEntities[i] = Barrier(i * -300, random_road, barrierTexture, track);
+                gameEntities[i] = Barrier(i * -500, random_road, barrierTexture, track);
             }
             else if (random_entity == 1)
             {
-                gameEntities[i] = Boosters(i * -300, random_road, boosterTexture, track);
+                gameEntities[i] = Boosters(i * -500, random_road, boosterTexture, track);
             }
         }
+    }
+
+    int getTotalDistance() {
+        return totalDistance;
     }
 
     void copyEntityInto(Track& track, int xMove) {
@@ -220,8 +224,16 @@ public:
         {
             roadSigns[j].draw(window);
         }
-        for (int i = 0; i < noOfEntities; i++)
+
+        int startEntity = (currentDistance - 500) / 500;
+        if (startEntity < 0) {
+            startEntity = 0;
+        }
+        for (int i = startEntity; i < startEntity + 4; i++)
         {
+            if (i >= noOfEntities) {
+				break;
+			}
             gameEntities[i].draw(window);
         }
 
@@ -275,17 +287,17 @@ private:
 public:
     Car(Vector2f position, std::string texturePath) : position(position)
     {
-
-        carTexture.loadFromFile(texturePath);
         font.loadFromFile("./fonts/Roboto-Regular.ttf");
         speedText.setFont(font);
         speedText.setPosition(0, 0);
         speedText.setFillColor(Color::Red);
 
+        carTexture.loadFromFile(texturePath);
         carSprite.setTexture(carTexture);
         carSprite.setPosition(position.x, position.y); // Set initial position at the bottom
+
         speed = 0;
-        topSpeed = 2500;
+        topSpeed = 1800;
         acceleration = 0;
     }
 
@@ -380,15 +392,14 @@ int main()
     Car car2(Vector2f(880, 520), "./images/car2.png");
     car2.setSpeedTextPosition(Vector2f(560, 10));
 
-    Texture roadTexture;
-    roadTexture.loadFromFile("images/road.png");
-    Sprite road(roadTexture);
-    road.setScale(1, 1);
+    Texture bgTexture;
+    bgTexture.loadFromFile("images/road.png");
+    Sprite bgSprite(bgTexture);
 
-    Track track1(2000, 1, Vector2i(0, 450));
+    Track track1(50000, 1, Vector2i(0, 450));
     track1.generate();
 
-    Track track2(2000, 2, Vector2i(550, 900));
+    Track track2(50000, 2, Vector2i(550, 900));
     track1.copyEntityInto(track2, 550);
 
     Clock clock;
@@ -403,7 +414,7 @@ int main()
 
         Event event;
         float deltaTime = clock.restart().asSeconds();
-
+        
         while (window.pollEvent(event))
         {
             if (event.type == Event::Closed)
@@ -412,28 +423,22 @@ int main()
         }
 
         // Car 1 Controls
-
         if (Keyboard::isKeyPressed(Keyboard::W))
         {
             car1AcceleratorPressed = true;
         }
-
         if (Keyboard::isKeyPressed(Keyboard::S))
         {
             car1.decelerate(deltaTime, 30);
         }
-
-
         if (Keyboard::isKeyPressed(Keyboard::A))
         {
             car1.moveLeft(deltaTime, 200, track1);
         }
-
         if (Keyboard::isKeyPressed(Keyboard::D))
         {
             car1.moveRight(deltaTime, 200, track1);
         }
-
         if (car1AcceleratorPressed)
         {
             car1.accelerate(deltaTime, 50);
@@ -444,7 +449,6 @@ int main()
         }
 
         // Car 2 Controls
-
         if (Keyboard::isKeyPressed(Keyboard::Up))
         {
             car2AcceleratorPressed = true;
@@ -475,11 +479,8 @@ int main()
 			car2.decelerate(deltaTime, 0.2);
 		}
         
-
-
-
         window.clear();
-        window.draw(road);
+        window.draw(bgSprite);
 
         track1.draw(window);
         track2.draw(window);
@@ -494,6 +495,15 @@ int main()
         car1.drawCarOnTrack(track1, track2, window);
         car2.draw(window);
         car2.drawCarOnTrack(track2, track1, window);
+
+
+
+        if (track1.getCurrentDistance() > track1.getTotalDistance()) {
+            window.close();
+        }
+        if (track2.getCurrentDistance() > track1.getTotalDistance()) {
+            window.close();
+        }
 
         window.display();
     }
