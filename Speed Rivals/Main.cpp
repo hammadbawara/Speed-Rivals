@@ -145,6 +145,9 @@ class Track {
     Texture barrierTexture;
 
     Vector2i boundary;
+
+    Font font;
+    Text distanceText;
 public:
 
     Track(int totalDistance, int t, Vector2i boundary) {
@@ -152,6 +155,11 @@ public:
         this->boundary = boundary;
 
         track = t;
+
+        font.loadFromFile("./fonts/Roboto-Regular.ttf");
+        distanceText.setFont(font);
+        distanceText.setFillColor(Color::Blue);
+        distanceText.setPosition(boundary.x + 350, 10);
 
         noOfEntities = totalDistance / 300;
 
@@ -204,6 +212,10 @@ public:
 
 
     void draw(RenderWindow& window) {
+        int distance = currentDistance / 10;
+
+        distanceText.setString(std::to_string(distance));
+
         for (int j = 0; j < 12; j++)
         {
             roadSigns[j].draw(window);
@@ -212,6 +224,8 @@ public:
         {
             gameEntities[i].draw(window);
         }
+
+        window.draw(distanceText);
     }
 
     void move(float deltaTime, float speed) {
@@ -244,15 +258,6 @@ public:
     float& getCurrentDistance() {
         return currentDistance;
     }
-
-    /*void showCarFromTrack(Track& otherTrack, Car& otherCar, RenderWindow& window) {
-        float difference = otherTrack.getCurrentDistance() - currentDistance;
-        if (difference > 0) {
-            Car car = otherCar;
-            car.moveCordinate(-450, difference);
-            car.draw(window);
-        }
-    }*/
 };
 
 class Car
@@ -314,7 +319,7 @@ public:
     void moveRight(float deltaTime, float speed, Track& track)
     {
         float newX = carSprite.getPosition().x + speed * deltaTime;
-        if (newX < track.getBoundary().x + 370) {
+        if (newX < track.getBoundary().x + 360) {
 			carSprite.move(speed * deltaTime, 0); // Move right
 		}
         
