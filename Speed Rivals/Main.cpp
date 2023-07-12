@@ -29,11 +29,8 @@ public:
         this->yPosition = yPosition;
         signTexture.loadFromFile("images/road_sign.png");
         signSprite.setTexture(signTexture);
-        signSprite.setScale(1, 1);
         signSprite.setPosition(xPosition, yPosition);
     }
-    
-
 
     void move(float deltaTime, float speed)
     {
@@ -151,6 +148,8 @@ class Track {
 public:
 
     Track(int totalDistance, int t, Vector2i boundary) {
+        currentDistance = 0;
+
         this->totalDistance = totalDistance;
         this->boundary = boundary;
 
@@ -162,14 +161,12 @@ public:
         distanceText.setPosition(boundary.x + 350, 10);
 
         noOfEntities = totalDistance / 500;
-
-        currentDistance = 0;
-
         gameEntities = new GameEntity[noOfEntities];
 
         boosterTexture.loadFromFile("./images/barrier.png");
         barrierTexture.loadFromFile("./images/boosters.png");
 
+        // Set road signs
         if (track == 1) {
             for (int i = 0; i < 6; i++) {
                 roadSigns[i].setSignValues(140, i * 200);
@@ -214,9 +211,8 @@ public:
         }
     }
 
-
     void draw(RenderWindow& window) {
-        int distance = currentDistance / 10;
+        int distance = currentDistance / 5;
 
         distanceText.setString(std::to_string(distance));
 
@@ -297,7 +293,7 @@ public:
         carSprite.setPosition(position.x, position.y); // Set initial position at the bottom
 
         speed = 0;
-        topSpeed = 1800;
+        topSpeed = 1000;
         acceleration = 0;
     }
 
@@ -307,7 +303,7 @@ public:
 
     void draw(RenderWindow& window)
     {
-        int speed = (int)this->speed/10;
+        int speed = (int)this->speed/5;
         speedText.setString(std::to_string(speed));
         
         window.draw(speedText);
