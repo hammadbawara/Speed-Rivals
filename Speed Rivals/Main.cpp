@@ -116,16 +116,26 @@ public:
     {
         sprite.move(0, speed * deltaTime); // Move upwards
     }
+
+    virtual std::string getType() {
+        return "gameEntity";
+    }
 };
 
 class Barrier : public GameEntity {
 public:
     Barrier(float yPosition, int road, Texture& texture, int track) : GameEntity(yPosition, road, texture, track) {}
+    std::string getType() {
+        return "barrier";
+    }
 };
 
 class Boosters : public GameEntity {
 public:
     Boosters(float yPosition, int road, Texture& texture, int track) : GameEntity(yPosition, road, texture, track) {}
+    std::string getType() {
+        return "booster";
+    }
 };
 
 class Track {
@@ -345,7 +355,23 @@ public:
         if (speed > 0) {
 			speed -= acceleration * deltaTime;
 		}
+        else {
+			speed = 0;
+		}
 	}
+
+    /*void collision(Track& track) {
+        for (int i = 0; i < track.getNoOfEntities(); i++) {
+            if (getBounds().intersects(track.getGameEntitity(i)->getBounds())) {
+                if (track.getGameEntitity(i)->getType() == "barrier") {
+					speed = 0;
+				}
+                else if (track.getGameEntitity(i)->getType() == "booster") {
+					speed += 100;
+				}
+			}
+		}
+	}*/
 
     void drawCarOnTrack(Track& currentTrack, Track& otherTrack, RenderWindow& window) {
 		float difference = currentTrack.getCurrentDistance() - otherTrack.getCurrentDistance();
@@ -353,23 +379,6 @@ public:
 			Car car = *this;
             car.carSprite.move(otherTrack.getBoundary().x - currentTrack.getBoundary().x, -difference);
 			car.draw(window);
-		}
-	}
-
-    void checkCollision(Track& track) {
-        for (int i = 0; i < track.getNoOfEntities(); i++)
-        {
-            if (getBounds().intersects(track.getGameEntitity(i)->getBounds()))
-            {
-                if (typeid(*track.getGameEntitity(i)) == typeid(Barrier))
-                {
-					decelerate(0.5, 0.5);
-				}
-                else if (typeid(*track.getGameEntitity(i)) == typeid(Boosters))
-                {
-					accelerate(0.5, 0.5);
-				}
-			}
 		}
 	}
 
@@ -405,11 +414,12 @@ int main()
     
     while (window.isOpen())
     {
+        float deltaTime = clock.restart().asSeconds();
+
         bool car2AcceleratorPressed = false;
         bool car1AcceleratorPressed = false;
 
         Event event;
-        float deltaTime = clock.restart().asSeconds();
         
         while (window.pollEvent(event))
         {
@@ -435,6 +445,7 @@ int main()
         {
             car1.moveRight(deltaTime, 200, track1);
         }
+
         if (car1AcceleratorPressed)
         {
             car1.accelerate(deltaTime, 50);
@@ -476,23 +487,22 @@ int main()
 		}
         
         window.clear();
+
         window.draw(bgSprite);
 
         track1.draw(window);
         track2.draw(window);
-        
 
         car1.move(track1, deltaTime);
 
         car2.move(track2, deltaTime);
-
 
         car1.draw(window);
         car1.drawCarOnTrack(track1, track2, window);
         car2.draw(window);
         car2.drawCarOnTrack(track2, track1, window);
 
-
+   
 
         if (track1.getCurrentDistance() > track1.getTotalDistance()) {
             window.close();
