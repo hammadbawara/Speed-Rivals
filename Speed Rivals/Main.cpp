@@ -1,6 +1,7 @@
 #include <SFML/Graphics.hpp>
 using namespace sf;
 
+// Constants for window dimensions and track width
 const int WINDOW_WIDTH = 1000;
 const int WINDOW_HEIGHT = 800;
 const int TRACK1_WIDTH = 450;
@@ -13,7 +14,7 @@ int randomInt(int start, int end)
     return random;
 }
 
-
+// Class definition for road signs
 class Sign {
 private:
     Sprite signSprite;
@@ -48,6 +49,7 @@ public:
     }
 };
 
+// Class definition for game entities
 class GameEntity {
 protected:
     Sprite sprite;
@@ -122,6 +124,7 @@ public:
     }
 };
 
+// Class definition for barriers
 class Barrier : public GameEntity {
 public:
     Barrier(float yPosition, int road, Texture& texture, int track) : GameEntity(yPosition, road, texture, track) {}
@@ -389,38 +392,42 @@ public:
 
 int main()
 {
+    // Create the game window
     RenderWindow window(VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Car Game");
 
+    // Create car objects and set their initial positions
     Car car1(Vector2f(30, 520), "./images/car1.png");
     car1.setSpeedTextPosition(Vector2f(10, 10));
 
     Car car2(Vector2f(880, 520), "./images/car2.png");
     car2.setSpeedTextPosition(Vector2f(560, 10));
 
+    // Load background texture and create background sprite
     Texture bgTexture;
     bgTexture.loadFromFile("images/road.png");
     Sprite bgSprite(bgTexture);
 
+    // Create track objects and generate game entities
     Track track1(50000, 1, Vector2i(0, 450));
     track1.generate();
 
     Track track2(50000, 2, Vector2i(550, 900));
     track1.copyEntityInto(track2, 550);
 
+    // Set up clock and window properties
     Clock clock;
-
     window.setFramerateLimit(60);
-
     
     while (window.isOpen())
     {
+        // Calculate time elapsed since last frame
         float deltaTime = clock.restart().asSeconds();
 
         bool car2AcceleratorPressed = false;
         bool car1AcceleratorPressed = false;
 
+        // Handle events
         Event event;
-        
         while (window.pollEvent(event))
         {
             if (event.type == Event::Closed)
@@ -465,7 +472,6 @@ int main()
         {
             car2.decelerate(deltaTime, 20);
         }
-        
 
         if (Keyboard::isKeyPressed(Keyboard::Left))
         {
@@ -488,22 +494,23 @@ int main()
         
         window.clear();
 
+        // Drawing the game entities
         window.draw(bgSprite);
-
         track1.draw(window);
         track2.draw(window);
 
+        // Moving and drawing the cars
         car1.move(track1, deltaTime);
-
         car2.move(track2, deltaTime);
 
         car1.draw(window);
-        car1.drawCarOnTrack(track1, track2, window);
         car2.draw(window);
+
+        // Drawing car on other track
+        car1.drawCarOnTrack(track1, track2, window);
         car2.drawCarOnTrack(track2, track1, window);
 
-   
-
+        // Check if the car has reached the end of the track
         if (track1.getCurrentDistance() > track1.getTotalDistance()) {
             window.close();
         }
@@ -511,6 +518,7 @@ int main()
             window.close();
         }
 
+        // Display the updated window
         window.display();
     }
 
